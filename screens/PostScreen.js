@@ -1,3 +1,4 @@
+// Import all necessary libraries and modules
 import React, { useState, useEffect } from "react";
 import {
   Button,
@@ -10,15 +11,17 @@ import {
   Pressable,
   Alert,
 } from "react-native";
+
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 import { auth, db } from "../utils/firebase";
-import { onAuthStateChanged } from "firebase/auth";
 import { addPost } from "../utils/post";
-import { doc, getDoc } from "firebase/firestore";
+import { getUser } from "../utils/user";
 
 import {
   Container,
@@ -27,22 +30,29 @@ import {
   ImageContainer,
   PostButton,
 } from "../styles/post.styles";
-import { getUser } from "../utils/user";
 
+// Declare the PostScreen functional component
 const PostScreen = ({ navigation }) => {
+
+  // Declare all the state variables with useState
   const [currentUser, setCurrentUser] = useState("");
   const [userDbInfo, setUserDbInfo] = useState(null);
   const [image, setImage] = useState(null);
   const [description, setDescription] = useState("");
 
+  // Set PostButtonColor to be either '#F50057' or 'gray' based on whether 'image' is null or not.
   const PostButtonColor = image ? "#F50057" : "gray";
+
+  // UseEffect to fetch the user's information from firestore
   useEffect(() => {
     const fetchUser = async () => {
+      // Set the current user
       onAuthStateChanged(auth, (user) => {
         setCurrentUser(user);
       });
-      const documentSnapshot = await getDoc(doc(db, "users", currentUser.uid));
 
+      // Access the Firestore document, if it exists, set the user db info
+      const documentSnapshot = await getDoc(doc(db, "users", currentUser?.uid));
       if (documentSnapshot.exists) {
         setUserDbInfo(documentSnapshot.data());
       } else {
@@ -52,9 +62,14 @@ const PostScreen = ({ navigation }) => {
     fetchUser();
   }, []);
 
-  useEffect(() => {}, [auth]);
+  // UseEffect with an empty dependency array just to clear out the linter warning.
+  useEffect(() => {
+  }, []);
+
+  // Console log userDbInfo for testing purposes.
   console.log(userDbInfo);
 
+  // Code to pick an image from the user's phone
   const photoPicker = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -66,10 +81,11 @@ const PostScreen = ({ navigation }) => {
     }
   };
 
+  // Code to handle the post creation.
   const handlePost = () => {
     addPost({
       currentUser,
-      userDbInfo: userDbInfo,
+      userDbInfo,
       description: description.trim(),
       localImageUri: image,
     })
@@ -90,6 +106,7 @@ const PostScreen = ({ navigation }) => {
 
   return (
     <>
+      {/* Conditional rendering based on if there is a logged in user or not */}
       {!currentUser ? (
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
@@ -103,6 +120,7 @@ const PostScreen = ({ navigation }) => {
           />
         </View>
       ) : (
+        // Conditional rendering based on if the user's db info exists or not.
         userDbInfo && (
           <Container>
             <InputContainer>

@@ -1,3 +1,4 @@
+// Import necessary libraries
 import React, { useState } from "react";
 import {
   View,
@@ -7,25 +8,32 @@ import {
   KeyboardAvoidingView,
   TextInput,
   TouchableOpacity,
-  ImageBackground, Image,
+  ImageBackground,
+  Image,
 } from "react-native";
-
 import { auth, db } from "../utils/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+
+// Create a functional component RegisterScreen
 const RegisterScreen = ({ navigation }) => {
+  // Assign initial states
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  // Handle user registration
   const handleSignUp = () => {
+    // Check if password matches with confirm password
     if (confirmPassword != password) {
       alert("Password does not match");
     } else {
+      // Create user using email and password
       createUserWithEmailAndPassword(auth, email, password)
         .then(async (userCred) => {
           await setDoc(doc(db, "users", userCred.user.uid), {
+            // Create user profile
             email,
             userName: username,
             profileImage:
@@ -35,7 +43,9 @@ const RegisterScreen = ({ navigation }) => {
             followed: 0,
           })
             .then(() => {
+              // Navigate to home screen if registration is successful
               navigation.navigate("Home");
+              // Reset states
               setEmail("");
               setUsername("");
               setPassword("");
@@ -46,11 +56,12 @@ const RegisterScreen = ({ navigation }) => {
             });
         })
         .catch((error) => {
+          // Handle different errors
           if (error.code === "auth/weak-password") {
             alert("Password should be at least 6 characters");
           } else if (error.code === "auth/email-already-in-use") {
             alert(
-              "This email is already associated with an account. Try loging in."
+              "This email is already associated with an account. Try logging in."
             );
           } else {
             console.log(
@@ -65,6 +76,7 @@ const RegisterScreen = ({ navigation }) => {
     }
   };
 
+  // Return the UI
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <Image
@@ -110,7 +122,9 @@ const RegisterScreen = ({ navigation }) => {
         <TouchableOpacity
           style={[styles.button, styles.buttonOutline]}
           onPress={() => {
+            // Navigate to Login screen if user is already registered
             navigation.navigate("Login");
+            // Reset states
             setEmail("");
             setPassword("");
             setConfirmPassword("");
@@ -123,8 +137,10 @@ const RegisterScreen = ({ navigation }) => {
   );
 };
 
+// Export RegisterScreen component
 export default RegisterScreen;
 
+// CSS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -190,4 +206,3 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
-// #F50057
